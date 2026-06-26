@@ -1,0 +1,7 @@
+# Keep secrets and local cruft out of the Railway build context.
+# (Env vars are set directly in Railway, not shipped in .env.)
+.env
+.env.*
+.venv/
+__pycache__/
+*.pyc
