@@ -80,39 +80,47 @@ The surface is a flat array; the root MUST have id "root" and be a Column. Stack
 cards vertically — never place cards side-by-side in a Row. Reference children by
 id. The host sets catalogId — do not include it.
 
-Use the EXACT numbers from the provided context sections ("Ella spending data",
-"Emergency fund", any "Proactive insight" or per-tool data). Never invent or
+Use the EXACT numbers from the provided context (the "Ella spending data", and
+any emergency-fund or insight data fetched for this question). Never invent or
 recompute amounts.
 
-Component selection:
+Component selection — render ONLY what answers the question, nothing more:
 - StatCard: one headline number (total, monthly average, net).
 - DonutChart: category breakdown / proportions (segments from the data).
 - BarChart: a monthly trend, or top merchants (bars from the data).
 - ExpenseList: individual expense rows.
-- BudgetMeter: the emergency fund. ALWAYS include it, using the "Emergency fund"
-  values (title, current, target, caption, riskFactors).
-- InsightAlert: if a "Proactive insight" section is present, ALWAYS include one
-  (severity, title, message), placed just before the BudgetMeter.
+- BudgetMeter: the emergency fund. Include ONLY when the user asks about the
+  emergency fund, savings, being ready for an emergency, or adds to the fund
+  (call add_to_emergency_fund, then render the BudgetMeter — it celebrates
+  automatically at 100%). Do NOT add it to surfaces about spending, categories,
+  trends, merchants, or transactions.
+- InsightAlert: include ONLY to flag a genuinely relevant unusual expense, and
+  at most one. It is not part of every surface.
 
-Compose the components that answer the user's question, then append the
-InsightAlert (if present) and the BudgetMeter.
+Compose just the components that answer the user's question. Do not append a
+BudgetMeter or InsightAlert unless the question itself is about that.
 
 ## Example — "How much am I spending on Ella?"
 components:
 [
-  {"id":"root","component":"Column","children":["total","donut","alert","fund"]},
+  {"id":"root","component":"Column","children":["total","donut"]},
   {"id":"total","component":"StatCard","label":"Total spent","value":"$5,172","icon":"savings","accent":"teal"},
-  {"id":"donut","component":"DonutChart","title":"Where the money goes","centerLabel":"$5,172","segments":[{"label":"Veterinary","value":1593.5,"color":"magenta"},{"label":"Walker","value":1540,"color":"teal"},{"label":"Boarding Daycare","value":900,"color":"orange"}]},
-  {"id":"alert","component":"InsightAlert","severity":"warning","title":"Unplanned vet cost: $680 in Feb","message":"Dental cleaning + extractions — this is what an emergency fund is for."},
-  {"id":"fund","component":"BudgetMeter","title":"Ella's emergency fund","current":420,"target":1100,"caption":"$420 of $1,100 saved (38%)","riskFactors":["Recurring ear infections","Seasonal allergies","Annual dental cleanings"]}
+  {"id":"donut","component":"DonutChart","title":"Where the money goes","centerLabel":"$5,172","segments":[{"label":"Veterinary","value":1593.5,"color":"magenta"},{"label":"Walker","value":1540,"color":"teal"},{"label":"Boarding Daycare","value":900,"color":"orange"}]}
 ]
 
-## Example — "Show my spending trend"
+## Example — "Break down food costs"
 components:
 [
-  {"id":"root","component":"Column","children":["bar","fund"]},
-  {"id":"bar","component":"BarChart","title":"Monthly spending","unit":"$","accent":"teal","bars":[{"label":"Jan","value":958},{"label":"Feb","value":1471},{"label":"Mar","value":747}]},
-  {"id":"fund","component":"BudgetMeter","title":"Ella's emergency fund","current":420,"target":1100,"caption":"$420 of $1,100 saved (38%)","riskFactors":["Recurring ear infections"]}
+  {"id":"root","component":"Column","children":["fdonut","flist"]},
+  {"id":"fdonut","component":"DonutChart","title":"Food spending","segments":[{"label":"Kibble & Wet","value":316.9,"color":"teal"},{"label":"Treats","value":86.99,"color":"orange"}]},
+  {"id":"flist","component":"ExpenseList","title":"Food expenses","rows":[{"merchant":"Chewy","category":"Food","date":"2026-06-07","amount":52.4,"icon":"food"}]}
+]
+
+## Example — "Am I ready for an emergency?" (the ONLY kind of query that shows a BudgetMeter)
+components:
+[
+  {"id":"root","component":"Column","children":["fund"]},
+  {"id":"fund","component":"BudgetMeter","title":"Ella's emergency fund","current":420,"target":1100,"caption":"$420 of $1,100 saved (38%)","riskFactors":["Recurring ear infections","Seasonal allergies","Annual dental cleanings"]}
 ]
 """
 

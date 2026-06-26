@@ -30,8 +30,10 @@ from google.adk.tools import ToolContext
 _DATA_PATH = Path(__file__).parent / "data" / "ella_expenses.json"
 _DATA: dict[str, Any] | None = None
 
-# Emergency-fund "saved so far" is a DEMO CONSTANT (not in the expense data).
+# Emergency-fund "saved so far" starts at a DEMO CONSTANT (not in the expense
+# data); contributions via add_to_emergency_fund accumulate in session state.
 _EMERGENCY_FUND_SAVED = 420.0
+_FUND_STATE_KEY = "fund_saved"
 _BREED_RISK_MULTIPLIER = 1.4  # Malshi: dental + ears + seasonal allergies.
 
 # Stable color + icon per category (keys understood by the Flutter catalog).
@@ -157,7 +159,7 @@ def _totals() -> dict[str, Any]:
     }
 
 
-def _emergency_fund() -> dict[str, Any]:
+def _emergency_fund(saved: float = _EMERGENCY_FUND_SAVED) -> dict[str, Any]:
     vet_total = sum(e["amount"] for e in _spend("veterinary"))
     months = len({e["date"][:7] for e in _spend("veterinary")}) or 1
     vet_monthly = vet_total / months
@@ -171,13 +173,13 @@ def _emergency_fund() -> dict[str, Any]:
         risks.append("Seasonal allergies")
     if "dental" in notes:
         risks.append("Annual dental cleanings")
+    pct = round(saved / target * 100) if target else 0
     return {
         "title": "Ella's emergency fund",
-        "current": _EMERGENCY_FUND_SAVED,
+        "current": round(saved, 2),
         "target": float(target),
         "caption": (
-            f"{_money(_EMERGENCY_FUND_SAVED)} of {_money(target)} saved "
-            f"({round(_EMERGENCY_FUND_SAVED / target * 100)}%) — a 3-month "
+            f"{_money(saved)} of {_money(target)} saved ({pct}%) — a 3-month "
             "vet buffer for a Malshi"
         ),
         "riskFactors": risks[:3],
@@ -220,10 +222,11 @@ def _publish(state: Any, description: str, payload: Any) -> None:
 
 
 def prime_context(callback_context: Any) -> None:
-    """before_agent_callback: publish Ella's chart-ready data + the proactive
-    sizzle on every turn, so the render is accurate and the alert is reliable
-    regardless of which tools the model chooses to call."""
-    state = callback_context.state
+    """before_agent_callback: publish Ella's chart-ready spending data on every
+    turn so the render uses EXACT numbers. The emergency fund and any proactive
+    insight are NOT forced here — the agent pulls them in (get_emergency_fund /
+    detect_surprise_expense) only when the question makes them relevant, so they
+    don't appear on every surface."""
     overview = {
         "totals": _totals(),
         "by_category_segments": _by_category_segments(),
@@ -231,23 +234,10 @@ def prime_context(callback_context: Any) -> None:
         "top_merchants": _top_merchants(),
     }
     _publish(
-        state,
+        callback_context.state,
         "Ella spending data (use these EXACT numbers; do not invent amounts)",
         overview,
     )
-    _publish(
-        state,
-        "Emergency fund (render as a BudgetMeter; use these EXACT values)",
-        _emergency_fund(),
-    )
-    surprise = _surprise()
-    if surprise is not None:
-        _publish(
-            state,
-            "Proactive insight (ALWAYS add this as an InsightAlert, severity "
-            f"'{surprise['severity']}')",
-            surprise,
-        )
 
 
 # --- tools (query-specific drill-downs; each publishes + returns) -----------
@@ -342,7 +332,23 @@ def get_stat(tool_context: ToolContext, metric: str = "total") -> dict[str, Any]
 
 def get_emergency_fund(tool_context: ToolContext) -> dict[str, Any]:
     """Ella's emergency-fund status (for a BudgetMeter). Breed-aware target."""
-    payload = _emergency_fund()
+    saved = float(tool_context.state.get(_FUND_STATE_KEY, _EMERGENCY_FUND_SAVED))
+    payload = _emergency_fund(saved)
+    _publish(tool_context.state, "Emergency fund (BudgetMeter values)", payload)
+    return payload
+
+
+def add_to_emergency_fund(
+    amount: float, tool_context: ToolContext
+) -> dict[str, Any]:
+    """Add a contribution to Ella's emergency fund and return the updated
+    BudgetMeter values. Use when the user saves toward or tops up the fund (e.g.
+    "add $700 to the emergency fund"). The meter celebrates automatically when it
+    reaches 100%."""
+    saved = float(tool_context.state.get(_FUND_STATE_KEY, _EMERGENCY_FUND_SAVED))
+    saved = max(0.0, saved + amount)
+    tool_context.state[_FUND_STATE_KEY] = saved
+    payload = _emergency_fund(saved)
     _publish(tool_context.state, "Emergency fund (BudgetMeter values)", payload)
     return payload
 
@@ -380,5 +386,6 @@ TOOLS = [
     list_expenses,
     get_stat,
     get_emergency_fund,
+    add_to_emergency_fund,
     detect_surprise_expense,
 ]

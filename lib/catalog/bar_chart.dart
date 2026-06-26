@@ -90,6 +90,23 @@ class _BarChart extends StatelessWidget {
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
                   maxY: maxValue == 0 ? 1 : maxValue * 1.2,
+                  // Readable hover/tap tooltip: solid accent box, white text
+                  // (fl_chart's default is a low-contrast slate box).
+                  barTouchData: BarTouchData(
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipColor: (group) => accent,
+                      tooltipBorderRadius: BorderRadius.circular(8),
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) =>
+                          BarTooltipItem(
+                            '$unit${rod.toY.toStringAsFixed(0)}',
+                            const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                    ),
+                  ),
                   gridData: const FlGridData(show: false),
                   borderData: FlBorderData(show: false),
                   titlesData: FlTitlesData(
