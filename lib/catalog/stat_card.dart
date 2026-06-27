@@ -65,9 +65,10 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(PawSpacing.md),
         child: Row(
           children: [
             pawIconBadge(icon, accent, size: 48),
@@ -78,7 +79,9 @@ class _StatCard extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: t.labelMedium?.copyWith(color: Colors.black54),
+                    style: t.labelMedium?.copyWith(
+                      color: cs.onSurface.withValues(alpha: 0.6),
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -92,7 +95,9 @@ class _StatCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       sublabel!,
-                      style: t.bodySmall?.copyWith(color: Colors.black54),
+                      style: t.bodySmall?.copyWith(
+                        color: cs.onSurface.withValues(alpha: 0.6),
+                      ),
                     ),
                   ],
                 ],

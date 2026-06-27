@@ -74,19 +74,36 @@ const PawColors _pawColors = PawColors(
   muted: pawMuted,
 );
 
+/// Returns the [PawColors] extension from the theme, falling back to the
+/// default light-mode values if somehow absent (e.g. in tests).
+PawColors pawColors(BuildContext context) =>
+    Theme.of(context).extension<PawColors>() ?? _pawColors;
+
 /// Resolves an accent-key (from A2UI data) to a color via the theme.
 Color accentColor(BuildContext context, String? key) =>
-    (Theme.of(context).extension<PawColors>() ?? _pawColors).byKey(key);
+    pawColors(context).byKey(key);
+
+/// Base-8 spacing scale — use these named constants instead of raw pixel values.
+abstract class PawSpacing {
+  static const double xxs = 2;
+  static const double xs = 4;
+  static const double sm = 8;
+  static const double md = 16;
+  static const double lg = 24;
+  static const double xl = 32;
+  static const double xxl = 48;
+}
 
 /// The mockup's signature: a flat **solid-color circle with a white pictogram**.
 /// Use it as the leading icon on cards / section headings.
-Widget pawIconBadge(IconData icon, Color color, {double size = 36}) => Container(
-  width: size,
-  height: size,
-  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-  alignment: Alignment.center,
-  child: Icon(icon, color: Colors.white, size: size * 0.56),
-);
+Widget pawIconBadge(IconData icon, Color color, {double size = 36}) =>
+    Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      alignment: Alignment.center,
+      child: Icon(icon, color: Colors.white, size: size * 0.56),
+    );
 
 ThemeData buildPawtfolioTheme() {
   final scheme = ColorScheme.fromSeed(
@@ -104,9 +121,12 @@ ThemeData buildPawtfolioTheme() {
     base.textTheme,
   ).apply(bodyColor: pawInk, displayColor: pawTeal);
 
-  TextStyle head(TextStyle? s, {double spacing = 0.4}) => GoogleFonts.oswald(
-    textStyle: s,
-  ).copyWith(color: pawTeal, fontWeight: FontWeight.w600, letterSpacing: spacing);
+  TextStyle head(TextStyle? s, {double spacing = 0.4}) =>
+      GoogleFonts.oswald(textStyle: s).copyWith(
+        color: pawTeal,
+        fontWeight: FontWeight.w600,
+        letterSpacing: spacing,
+      );
 
   final textTheme = bodyTheme.copyWith(
     displayLarge: head(bodyTheme.displayLarge),

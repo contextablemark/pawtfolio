@@ -105,18 +105,24 @@ class _ExpenseRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+    final paw = pawColors(context);
     final subtitle = [
       if (row.category != null && row.category!.isNotEmpty) row.category,
       if (row.date != null && row.date!.isNotEmpty) row.date,
     ].join(' · ');
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: PawSpacing.xs + 2),
       child: Row(
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: pawTeal.withValues(alpha: 0.12),
-            child: Icon(_icons[row.icon] ?? Icons.pets, size: 18, color: pawTeal),
+            backgroundColor: cs.primary.withValues(alpha: 0.12),
+            child: Icon(
+              _icons[row.icon] ?? Icons.pets,
+              size: 18,
+              color: cs.primary,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -127,12 +133,14 @@ class _ExpenseRow extends StatelessWidget {
                 if (subtitle.isNotEmpty)
                   Text(
                     subtitle,
-                    style: t.bodySmall?.copyWith(color: Colors.black54),
+                    style: t.bodySmall?.copyWith(
+                      color: cs.onSurface.withValues(alpha: 0.6),
+                    ),
                   ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: PawSpacing.sm),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -143,7 +151,7 @@ class _ExpenseRow extends StatelessWidget {
               if (row.reimbursable)
                 Text(
                   'reimbursable',
-                  style: t.labelSmall?.copyWith(color: pawGreen),
+                  style: t.labelSmall?.copyWith(color: paw.green),
                 ),
             ],
           ),

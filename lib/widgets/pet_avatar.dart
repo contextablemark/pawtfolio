@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pawtfolio/theme.dart';
 import 'package:pawtfolio/transport/ag_ui_config.dart';
 
 /// The pet's photo, loaded from the backend ([kPetImageUrl]) — not bundled into
@@ -11,18 +12,25 @@ class PetAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    // onPrimary resolves to white for our teal primary — the correct on-color
+    // whether the avatar sits on the teal header or the cream empty state.
+    final ring = cs.onPrimary;
     final fallback = Center(
-      child: Text('🐾', style: TextStyle(fontSize: size * 0.5)),
+      child: Text('🐾', style: TextStyle(fontSize: size * PawSpacing.sm / 16)),
     );
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white,
-        border: Border.all(color: Colors.white, width: 2),
+        color: ring,
+        border: Border.all(color: ring, width: 2),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 6),
+          BoxShadow(
+            color: cs.shadow.withValues(alpha: 0.12),
+            blurRadius: PawSpacing.xs + 2,
+          ),
         ],
       ),
       clipBehavior: Clip.antiAlias,

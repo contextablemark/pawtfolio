@@ -92,11 +92,11 @@ class _HomePageState extends State<HomePage> {
                           child: latest == null
                               ? _EmptyState(petName: _petName)
                               : SingleChildScrollView(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    16,
-                                    8,
-                                    16,
-                                    16,
+                                  padding: const EdgeInsets.only(
+                                    left: PawSpacing.md,
+                                    top: PawSpacing.sm,
+                                    right: PawSpacing.md,
+                                    bottom: PawSpacing.md,
                                   ),
                                   child: Center(
                                     child: ConstrainedBox(
@@ -149,13 +149,17 @@ class _AppHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
     final subtitle = petName.isEmpty
         ? 'Pet finance advisor'
         : "$petName's finance advisor";
     return Container(
       width: double.infinity,
-      color: pawTeal,
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      color: cs.primary,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: PawSpacing.md,
+      ),
       child: Row(
         children: [
           const PetAvatar(size: 46),
@@ -166,13 +170,15 @@ class _AppHeader extends StatelessWidget {
               Text(
                 'PAWTFOLIO',
                 style: t.titleLarge?.copyWith(
-                  color: Colors.white,
+                  color: cs.onPrimary,
                   letterSpacing: 1.5,
                 ),
               ),
               Text(
                 subtitle,
-                style: t.bodySmall?.copyWith(color: Colors.white70),
+                style: t.bodySmall?.copyWith(
+                  color: cs.onPrimary.withValues(alpha: 0.7),
+                ),
               ),
             ],
           ),
@@ -190,10 +196,11 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
     final who = petName.isEmpty ? 'your pet' : petName;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(28),
+        padding: const EdgeInsets.all(PawSpacing.xxl - 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -201,14 +208,18 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               "Ask about $who's spending",
-              style: t.titleMedium?.copyWith(color: Colors.black54),
+              style: t.titleMedium?.copyWith(
+                color: cs.onSurface.withValues(alpha: 0.6),
+              ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: PawSpacing.xs + 2),
             Text(
               '"How much am I spending on $who?"  ·  "Break down food costs"  ·  '
               '"Show my spending trend"  ·  "Am I ready for an emergency?"',
               textAlign: TextAlign.center,
-              style: t.bodySmall?.copyWith(color: Colors.black45),
+              style: t.bodySmall?.copyWith(
+                color: cs.onSurface.withValues(alpha: 0.45),
+              ),
             ),
           ],
         ),

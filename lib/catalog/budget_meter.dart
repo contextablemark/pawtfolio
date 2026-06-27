@@ -83,9 +83,13 @@ class _BudgetMeterState extends State<_BudgetMeter> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final paw = pawColors(context);
     final raw = widget.target > 0 ? widget.current / widget.target : 0.0;
     final pct = raw.clamp(0.0, 1.0);
-    final fill = pct < 0.4 ? pawMagenta : (pct < 0.75 ? pawOrange : pawGreen);
+    // Three-zone palette: danger (magenta) → caution (orange) → safe (green).
+    final fill = pct < 0.4
+        ? paw.magenta
+        : (pct < 0.75 ? paw.orange : paw.green);
     final caption =
         widget.caption ??
         '\$${widget.current.toStringAsFixed(0)} of '
@@ -93,13 +97,13 @@ class _BudgetMeterState extends State<_BudgetMeter> {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(PawSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                pawIconBadge(Icons.savings, pawGreen, size: 32),
+                pawIconBadge(Icons.savings, paw.green, size: 32),
                 const SizedBox(width: 10),
                 Expanded(child: Text(widget.title, style: t.titleMedium)),
               ],
@@ -117,19 +121,19 @@ class _BudgetMeterState extends State<_BudgetMeter> {
                         Expanded(
                           flex: 40,
                           child: ColoredBox(
-                            color: pawMagenta.withValues(alpha: 0.16),
+                            color: paw.magenta.withValues(alpha: 0.16),
                           ),
                         ),
                         Expanded(
                           flex: 35,
                           child: ColoredBox(
-                            color: pawOrange.withValues(alpha: 0.16),
+                            color: paw.orange.withValues(alpha: 0.16),
                           ),
                         ),
                         Expanded(
                           flex: 25,
                           child: ColoredBox(
-                            color: pawGreen.withValues(alpha: 0.16),
+                            color: paw.green.withValues(alpha: 0.16),
                           ),
                         ),
                       ],
@@ -143,24 +147,20 @@ class _BudgetMeterState extends State<_BudgetMeter> {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: PawSpacing.sm),
             Text(
               caption,
               style: t.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             if (widget.riskFactors.isNotEmpty) ...[
               const SizedBox(height: 10),
+              // Chips styled via chipTheme in ThemeData — no per-widget overrides.
               Wrap(
-                spacing: 8,
-                runSpacing: 6,
+                spacing: PawSpacing.sm,
+                runSpacing: PawSpacing.xs + 2,
                 children: [
                   for (final r in widget.riskFactors)
-                    Chip(
-                      label: Text(r),
-                      visualDensity: VisualDensity.compact,
-                      backgroundColor: pawOrange.withValues(alpha: 0.12),
-                      side: BorderSide(color: pawOrange.withValues(alpha: 0.3)),
-                    ),
+                    Chip(label: Text(r), visualDensity: VisualDensity.compact),
                 ],
               ),
             ],
