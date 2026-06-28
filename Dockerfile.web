@@ -3,9 +3,22 @@
 # The backend URL is compiled in at build time (Flutter web has no runtime env),
 # so it's passed as a build ARG -> --dart-define. Override per environment with
 # Railway's build arg / `--build-arg AG_UI_BASE_URL=...`.
-# Pinned: project needs Dart >=3.12.2; :stable lagged at 3.12.0. 3.44.4 bundles
-# a matching Dart. Bump in lockstep with the repo's Flutter SDK.
-FROM ghcr.io/cirruslabs/flutter:3.44.4 AS build
+#
+# Flutter is installed from git pinned to FLUTTER_VERSION (matches the dev
+# container) rather than a prebuilt image: the cirruslabs tags near 3.44 only
+# ship Dart 3.12.0, but the project needs >=3.12.2. Bump in lockstep with the
+# repo's SDK.
+FROM debian:bookworm-slim AS build
+
+ARG FLUTTER_VERSION=3.44.2
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git curl unzip xz-utils ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN git clone --depth 1 -b "$FLUTTER_VERSION" https://github.com/flutter/flutter.git /flutter
+ENV PATH="/flutter/bin:${PATH}"
+RUN git config --global --add safe.directory /flutter \
+    && flutter --version \
+    && flutter config --enable-web \
+    && flutter precache --web
 
 WORKDIR /app
 
