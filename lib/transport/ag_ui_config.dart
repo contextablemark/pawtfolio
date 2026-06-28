@@ -10,12 +10,14 @@ const String kA2uiEndpointPath = 'pawtfolio/';
 
 /// Base URL of the AG-UI backend.
 ///
-/// Defaults to the standalone ADK A2UI backend (`ag-ui-adk-backend`) on :8002.
-/// Override at build time with `--dart-define=AG_UI_BASE_URL=...` (use the
-/// host-forwarded port when running Flutter web in a dev container).
+/// Defaults to the deployed Railway backend so a plain `flutter build apk`
+/// (or web build) targets production. Override at build time with
+/// `--dart-define=AG_UI_BASE_URL=...` — e.g. `http://localhost:8002` for a
+/// local backend, or the host-forwarded port when running Flutter web in a
+/// dev container.
 const String kA2uiBaseUrl = String.fromEnvironment(
   'AG_UI_BASE_URL',
-  defaultValue: 'http://localhost:8002',
+  defaultValue: 'https://pawtfolio-production.up.railway.app',
 );
 
 /// URL of the pet's photo, served by the backend (`/static/pet.jpg`) — loaded
