@@ -1,0 +1,13 @@
+# Keep the web build context small. The backend has its own service/build, and
+# build artifacts/IDE/VCS dirs aren't needed to compile the Flutter web app.
+.git
+.dart_tool
+build
+backend
+android
+ios
+linux
+macos
+windows
+.idea
+**/*.iml

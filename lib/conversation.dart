@@ -42,6 +42,10 @@ class GenUiSession {
   /// the run streams in.
   ValueListenable<String> get a2uiSource => _transport.a2uiSource;
 
+  /// Ticks when the emergency fund reaches its goal, so the UI can celebrate in
+  /// the same turn the contribution lands (the BudgetMeter render lags a turn).
+  ValueListenable<int> get celebrate => _transport.celebrate;
+
   /// The current state of the conversation, including active surfaces and
   /// waiting status.
   ValueListenable<ConversationState> get conversationState =>

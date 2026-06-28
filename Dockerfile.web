@@ -1,0 +1,23 @@
+# Pawtfolio web frontend — build the Flutter web app, serve it as static files.
+#
+# The backend URL is compiled in at build time (Flutter web has no runtime env),
+# so it's passed as a build ARG -> --dart-define. Override per environment with
+# Railway's build arg / `--build-arg AG_UI_BASE_URL=...`.
+FROM ghcr.io/cirruslabs/flutter:stable AS build
+
+WORKDIR /app
+
+# Resolve deps first for layer caching.
+COPY pubspec.yaml pubspec.lock ./
+RUN flutter pub get
+
+COPY . .
+
+ARG AG_UI_BASE_URL=https://pawtfolio-production.up.railway.app
+RUN flutter build web --release --dart-define=AG_UI_BASE_URL=$AG_UI_BASE_URL
+
+# --- serve -----------------------------------------------------------------
+# Caddy binds Railway's $PORT and serves the SPA (history fallback to index).
+FROM caddy:2-alpine
+COPY --from=build /app/build/web /srv
+COPY Caddyfile /etc/caddy/Caddyfile

@@ -1,4 +1,5 @@
 import 'package:confetti/confetti.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pawtfolio/theme.dart';
 
@@ -11,12 +12,18 @@ abstract class PawConfetti {
 
 /// Wraps the surface canvas and bursts paw-colored confetti on [celebrate].
 ///
-/// Client-side only — no backend event. The BudgetMeter calls
-/// `PawtfolioConfetti.of(context)?.celebrate()` when it reaches 100%.
+/// Two triggers: the BudgetMeter calls `PawtfolioConfetti.of(context)?.
+/// celebrate()` when it renders at 100% (a turn behind a fresh contribution),
+/// and [trigger] fires immediately from the backend tool result the turn the
+/// fund hits its goal. The controller debounces, so both firing is harmless.
 class PawtfolioConfetti extends StatefulWidget {
-  const PawtfolioConfetti({required this.child, super.key});
+  const PawtfolioConfetti({required this.child, this.trigger, super.key});
 
   final Widget child;
+
+  /// Each change to this value fires the confetti burst. Wire it to the
+  /// transport's `celebrate` signal for the same-turn celebration.
+  final ValueListenable<int>? trigger;
 
   static PawConfetti? of(BuildContext context) =>
       context.findAncestorStateOfType<_PawtfolioConfettiState>();
@@ -32,6 +39,21 @@ class _PawtfolioConfettiState extends State<PawtfolioConfetti>
   );
 
   @override
+  void initState() {
+    super.initState();
+    widget.trigger?.addListener(celebrate);
+  }
+
+  @override
+  void didUpdateWidget(covariant PawtfolioConfetti oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.trigger != widget.trigger) {
+      oldWidget.trigger?.removeListener(celebrate);
+      widget.trigger?.addListener(celebrate);
+    }
+  }
+
+  @override
   void celebrate() {
     if (_controller.state != ConfettiControllerState.playing) {
       _controller.play();
@@ -40,6 +62,7 @@ class _PawtfolioConfettiState extends State<PawtfolioConfetti>
 
   @override
   void dispose() {
+    widget.trigger?.removeListener(celebrate);
     _controller.dispose();
     super.dispose();
   }

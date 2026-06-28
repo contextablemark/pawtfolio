@@ -86,6 +86,7 @@ class _HomePageState extends State<HomePage> {
                 _AppHeader(petName: _petName),
                 Expanded(
                   child: PawtfolioConfetti(
+                    trigger: _session.celebrate,
                     child: Stack(
                       children: [
                         Positioned.fill(

@@ -54,6 +54,13 @@ class AgUiTransport implements Transport {
   /// The raw A2UI JSON of the latest surface operations, for the source panel.
   final ValueNotifier<String> a2uiSource = ValueNotifier<String>('');
 
+  /// Ticks each time an emergency-fund tool result reaches (or passes) its
+  /// goal, so the UI can fire the celebration immediately. We can't rely on the
+  /// rendered BudgetMeter for this: the A2UI render sub-agent composes from
+  /// turn-start context, so a contribution made *this* turn only shows up in
+  /// the meter on the *next* run — but the tool result streams in this run.
+  final ValueNotifier<int> celebrate = ValueNotifier<int>(0);
+
   @override
   Stream<A2uiMessage> get incomingMessages => _messages.stream;
 
@@ -118,6 +125,11 @@ class AgUiTransport implements Transport {
         a2uiSource.value = _prettyJson(event.content);
         return true;
       }
+      // Not an A2UI surface. If it's an emergency-fund result that just hit its
+      // goal, celebrate now — this is the same-turn signal the BudgetMeter
+      // render can't give us (see [celebrate]). Arrives before the render
+      // result, so the loop sees it before it breaks.
+      if (_emergencyFundReachedGoal(event.content)) celebrate.value++;
     } else if (event is TextMessageContentEvent) {
       _text.add(event.delta);
     } else if (event is TextMessageChunkEvent) {
@@ -145,11 +157,30 @@ class AgUiTransport implements Transport {
     }
   }
 
+  /// True when [content] is an emergency-fund tool result whose saved amount has
+  /// reached (or passed) the target. The fund payload is the only tool result
+  /// carrying `current`, `target`, and `riskFactors`, so this won't false-fire
+  /// on other tools.
+  bool _emergencyFundReachedGoal(String content) {
+    try {
+      dynamic obj = jsonDecode(content);
+      if (obj is String) obj = jsonDecode(obj); // tolerate double-encoding
+      if (obj is! Map || !obj.containsKey('riskFactors')) return false;
+      final current = (obj['current'] as num?)?.toDouble();
+      final target = (obj['target'] as num?)?.toDouble();
+      if (current == null || target == null || target <= 0) return false;
+      return current / target >= 1.0;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   void dispose() {
     unawaited(_messages.close());
     unawaited(_text.close());
     a2uiSource.dispose();
+    celebrate.dispose();
     unawaited(_client.close());
   }
 }

@@ -1,0 +1,8 @@
+# Serve the built Flutter web app. Railway injects $PORT; default to 8080 for
+# local `docker run`. SPA: unknown paths fall back to index.html.
+:{$PORT:8080} {
+	root * /srv
+	encode gzip
+	try_files {path} /index.html
+	file_server
+}
