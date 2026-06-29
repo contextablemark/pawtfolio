@@ -44,6 +44,14 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Gradle / Kotlin build caches (anywhere, incl. android/). Build output itself
+# is redirected to the root /build/ above; these are the leftover caches and
+# IDE/Gradle session dirs an Android build/open generates.
+.gradle/
+.kotlin/
+# Defensive: a module build dir if a raw Gradle invocation ignores the redirect.
+android/**/build/
+
 # Secrets / Python backend (backend/.gitignore also covers these)
 .env
 **/.env
